@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<h2>Configuration ruTorrent pour C411</h2>
+
+<div class="section">
+<label>URL ruTorrent</label>
+<input id="url" placeholder="https://seedbox/rutorrent/php/addtorrent.php">
+</div>
+
+<div class="section">
+<label>Login</label>
+<input id="login">
+</div>
+
+<div class="section">
+<label>Password</label>
+<input id="password" type="password">
+</div>
+
+<div class="section">
+<label>Labels (un par lignes)</label>
+<textarea id="labels" placeholder="un label par ligne"></textarea>
+</div>
+
+<div class="section">
+<label>Label par défaut</label>
+<select id="defaultLabel"></select>
+</div>
+
+<div class="buttons">
+<button id="save">Sauvegarder</button>
+<button id="test">Tester la connexion</button>
+</div>
+
+<div id="status"></div>
+
+<script src="popup.js"></script>
+</body>
+</html>

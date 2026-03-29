@@ -1,0 +1,42 @@
+{
+  "manifest_version": 2,
+  "name": "C411 → ruTorrent",
+  "version": "1.1",
+  "description": "Envoyer des torrents C411 vers ruTorrent avec labels",
+  "icons": {
+  "48": "icon48.png",
+  "96": "icon96.png"
+  },
+
+  "permissions": [
+    "storage",
+    "https://c411.org/*",
+    "<all_urls>"
+  ],
+
+  "background": {
+    "scripts": ["background.js"]
+  },
+
+  "browser_action": {
+    "default_popup": "popup.html",
+    "default_title": "Configuration ruTorrent"
+  },
+
+  "browser_specific_settings": {
+  "gecko": {
+    "id": "c411-rutorrent@schiz0b0y.dev",
+    "data_collection_permissions": {
+      "required": ["none"],
+      "optional": []
+    }
+  }
+},
+
+  "content_scripts": [
+    {
+      "matches": ["https://c411.org/*"],
+      "js": ["content.js"]
+    }
+  ]
+}
