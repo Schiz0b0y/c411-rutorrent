@@ -2,6 +2,10 @@
 
 Extension Firefox permettant d’envoyer rapidement des torrents depuis C411 vers ruTorrent.
 
+## Utilisation
+- Depuis la liste de torrents, un clic gauche sur le bouton de téléchargement permet d'envoyer le torrent directement sur ruTorrent avec le label par défaut
+- Un clic droit sur le bouton de téléchargement permet d'envoyer le torrent avec le label sélectionné
+
 ## Fonctionnalités
 - Ajout en 1 clic avec label par défaut
 - Menu clic droit pour choisir un label
