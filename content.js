@@ -123,15 +123,21 @@ async function processTorrent(hash, label, button){
             label
         });
 
-        if(res?.success){
+    if(!res){
+            console.error("Pas de réponse du background");
+            button.textContent = "❌";
+            return;
+        }
+
+        if(res.success){
             button.textContent = "✓";
         } else {
-            console.log("Erreur:", res?.error);
+            console.error("Erreur:", res.error);
             button.textContent = "❌";
         }
 
     } catch(e){
-        console.log(e);
+        console.error("Erreur critique:", e);
         button.textContent = "❌";
     }
 
@@ -238,26 +244,29 @@ function attachBehaviour(button, hash){
    SCAN PAGE
 ==================== */
 
-function getHashFromRow(row){
-    const link = row.querySelector("a[href*='/torrents/']");
-    if(!link) return null;
+function scan(root = document){
 
-    const match = link.href.match(/torrents\/([a-f0-9]{40})/);
-    return match ? match[1] : null;
-}
+    const links = root.querySelectorAll('a[href^="/torrents/"]');
 
-function scan(root=document){
-    const buttons = root.querySelectorAll("button");
+    links.forEach(link => {
 
-    buttons.forEach(button=>{
-        const icon = button.querySelector(".i-heroicons\\:arrow-down-tray");
-        if(!icon) return;
+        const match = link.href.match(/torrents\/([a-f0-9]{40})/);
+        if(!match) return;
 
-        const row = button.closest("div[class*='grid']");
+        const hash = match[1];
+
+        // remonte au container principal (ligne desktop ou mobile)
+        const row = link.closest("div.hidden.lg\\:grid, div.lg\\:hidden");
         if(!row) return;
 
-        const hash = getHashFromRow(row);
-        if(!hash) return;
+        // trouve le bouton avec icône download
+        const button = [...row.querySelectorAll("button")]
+            .find(btn => btn.querySelector('[data-slot="leadingIcon"]'));
+
+        if(!button) return;
+
+        // évite double binding
+        if(button.dataset.rtAttached) return;
 
         attachBehaviour(button, hash);
     });
