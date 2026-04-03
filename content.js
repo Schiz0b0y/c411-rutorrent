@@ -3,7 +3,7 @@
 
 /* ====================
        CONFIG
-   ==================== */
+==================== */
 
 let LABELS = [];
 let DEFAULT_LABEL = null;
@@ -23,12 +23,7 @@ async function loadSettings(){
     const data = await browser.storage.local.get(["labels", "default_label"]);
 
     LABELS = data.labels || [];
-
-    if(data.default_label){
-        DEFAULT_LABEL = data.default_label;
-    } else {
-        DEFAULT_LABEL = LABELS[0] || null;
-    }
+    DEFAULT_LABEL = data.default_label || LABELS[0] || null;
 }
 
 /* ====================
@@ -37,7 +32,6 @@ async function loadSettings(){
 
 function createLoaderSVG(){
     const svgNS = "http://www.w3.org/2000/svg";
-
     const svg = document.createElementNS(svgNS, "svg");
     svg.setAttribute("width", "16");
     svg.setAttribute("height", "16");
@@ -63,7 +57,6 @@ function createLoaderSVG(){
 
     circle.appendChild(anim);
     svg.appendChild(circle);
-
     return svg;
 }
 
@@ -72,13 +65,11 @@ function createLoaderSVG(){
 ==================== */
 
 async function sendTorrent(hash, label, button){
-
     if(!LABELS.length){
         alert("Configure tes labels dans l'extension");
         return;
     }
 
-    // évite double clic / spam même torrent
     if(requestedHashes.has(hash)){
         console.log("Déjà en cours:", hash);
         return;
@@ -96,46 +87,34 @@ async function sendTorrent(hash, label, button){
 ==================== */
 
 async function processTorrent(hash, label, button){
-
-    // cooldown
     const now = Date.now();
     const wait = Math.max(0, REQUEST_DELAY - (now - lastRequestTime));
-
-    if(wait > 0){
-        await new Promise(r => setTimeout(r, wait));
-    }
-
+    if(wait > 0) await new Promise(r => setTimeout(r, wait));
     lastRequestTime = Date.now();
 
     const originalChildren = Array.from(button.childNodes);
     button.disabled = true;
-
     button.textContent = "";
     button.appendChild(createLoaderSVG());
 
     const torrentURL = `https://c411.org/api/torrents/${hash}/download`;
 
     try {
-
         const res = await browser.runtime.sendMessage({
             type: "SEND_TORRENT",
             torrentURL,
             label
         });
 
-    if(!res){
+        if(!res){
             console.error("Pas de réponse du background");
             button.textContent = "❌";
-            return;
-        }
-
-        if(res.success){
+        } else if(res.success){
             button.textContent = "✓";
         } else {
             console.error("Erreur:", res.error);
             button.textContent = "❌";
         }
-
     } catch(e){
         console.error("Erreur critique:", e);
         button.textContent = "❌";
@@ -152,42 +131,79 @@ async function processTorrent(hash, label, button){
    MENU LABELS
 ==================== */
 
-function createMenu(hash, button){
-    if(LABELS.length === 0){
-      const item = document.createElement("div");
-      item.textContent = "⚠️ Configure tes labels";
-      item.style.padding = "8px";
-      item.style.color = "#f87171";
-      menu.appendChild(item);
-      return menu;
+function createMenu(hash, button) {
+    const menu = document.createElement("div");
+    menu.style.position = "absolute";
+    menu.style.background = "#012119";
+    menu.style.border = "1px solid #003f2e";
+    menu.style.borderRadius = "6px";
+    menu.style.boxShadow = "0 4px 12px rgba(0,0,0,0.3)";
+    menu.style.zIndex = "999999";
+    menu.style.display = "none";
+
+    // injecte le style global si pas déjà fait
+    if (!document.getElementById('c411-menu-style')) {
+        const style = document.createElement('style');
+        style.id = 'c411-menu-style';
+        style.textContent = `
+            .c411-menu-item {
+                padding: 8px 12px;
+                cursor: pointer;
+                color: #00d492;
+                transition: background 0.2s;
+            }
+            .c411-menu-item:hover {
+                background: #374151;
+            }
+            .c411-menu-separator {
+                height: 1px;
+                margin: 4px 0;
+                background: #003f2e;
+            }
+        `;
+        document.head.appendChild(style);
     }
 
-    const menu = document.createElement("div");
-    menu.style.position="absolute";
-    menu.style.background="#012119";
-    menu.style.border="1px solid #003f2e";
-    menu.style.borderRadius="6px";
-    menu.style.boxShadow="0 4px 12px rgba(0,0,0,0.3)";
-    menu.style.zIndex="999999";
-    menu.style.display="none";
-
-    LABELS.forEach(label => {
+    // labels configurés
+    if(LABELS.length === 0){
         const item = document.createElement("div");
-        item.textContent = label;
-        item.style.padding="8px 12px";
-        item.style.cursor="pointer";
-        item.style.color="#00d492";
-
-        item.onmouseenter = ()=>item.style.background="#374151";
-        item.onmouseleave = ()=>item.style.background="";
-
-        item.onclick = ()=>{
-            sendTorrent(hash, label, button);
-            menu.style.display="none";
-        };
-
+        item.textContent = "⚠️ Configure tes labels";
+        item.style.padding = "8px";
+        item.style.color = "#f87171";
         menu.appendChild(item);
-    });
+    } else {
+        LABELS.forEach(label => {
+            const item = document.createElement("div");
+            item.textContent = label;
+            item.className = "c411-menu-item";
+            item.onclick = () => {
+                sendTorrent(hash, label, button);
+                menu.style.display = "none";
+            };
+            menu.appendChild(item);
+        });
+    }
+
+    // séparateur
+    const separator = document.createElement('div');
+    separator.className = 'c411-menu-separator';
+    menu.appendChild(separator);
+
+    // entrée pour télécharger le .torrent natif
+    const downloadItem = document.createElement("div");
+    downloadItem.textContent = "Télécharger .torrent";
+    downloadItem.className = "c411-menu-item";
+    downloadItem.onclick = () => {
+        const torrentURL = `https://c411.org/api/torrents/${hash}/download`;
+        const a = document.createElement('a');
+        a.href = torrentURL;
+        a.download = '';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        menu.style.display = "none";
+    };
+    menu.appendChild(downloadItem);
 
     document.body.appendChild(menu);
     return menu;
@@ -199,6 +215,7 @@ function createMenu(hash, button){
 
 function attachBehaviour(button, hash){
     if(button.dataset.rtAttached) return;
+
     const menu = createMenu(hash, button);
 
     // clic = label par défaut
@@ -209,7 +226,6 @@ function attachBehaviour(button, hash){
             alert("Aucun label par défaut défini");
             return;
         }
-
         sendTorrent(hash, DEFAULT_LABEL, button);
     }, true);
 
@@ -217,9 +233,7 @@ function attachBehaviour(button, hash){
     button.addEventListener("contextmenu", e=>{
         e.preventDefault();
         e.stopImmediatePropagation();
-
         const rect = button.getBoundingClientRect();
-
         menu.style.top = window.scrollY + rect.bottom + "px";
         menu.style.left = window.scrollX + rect.left + "px";
 
@@ -230,12 +244,12 @@ function attachBehaviour(button, hash){
         currentMenu = menu;
     }, true);
 
-    document.addEventListener("click", (e) => {
-    if (currentMenu && !currentMenu.contains(e.target)) {
-        currentMenu.style.display = "none";
-        currentMenu = null;
-    }
-});
+    document.addEventListener("click", e => {
+        if(currentMenu && !currentMenu.contains(e.target)){
+            currentMenu.style.display = "none";
+            currentMenu = null;
+        }
+    });
 
     button.dataset.rtAttached = "1";
 }
@@ -244,32 +258,51 @@ function attachBehaviour(button, hash){
    SCAN PAGE
 ==================== */
 
-function scan(root = document){
+function getDownloadButton(root){
+    return [...root.querySelectorAll("button")]
+        .find(btn => {
+            const icon = btn.querySelector('[data-slot="leadingIcon"]');
+            return icon && icon.className.includes("arrow-down-tray");
+        });
+}
 
+function scan(root = document){
+    // LISTE
     const links = root.querySelectorAll('a[href^="/torrents/"]');
 
     links.forEach(link => {
-
         const match = link.href.match(/torrents\/([a-f0-9]{40})/);
         if(!match) return;
 
         const hash = match[1];
-
-        // remonte au container principal (ligne desktop ou mobile)
         const row = link.closest("div.hidden.lg\\:grid, div.lg\\:hidden");
         if(!row) return;
 
-        // trouve le bouton avec icône download
-        const button = [...row.querySelectorAll("button")]
-            .find(btn => btn.querySelector('[data-slot="leadingIcon"]'));
-
+        const button = getDownloadButton(row);
         if(!button) return;
-
-        // évite double binding
         if(button.dataset.rtAttached) return;
 
         attachBehaviour(button, hash);
     });
+
+    // PAGE TORRENT
+    const pageMatch = location.href.match(/torrents\/([a-f0-9]{40})/);
+    if(pageMatch){
+        const hash = pageMatch[1];
+        const button = getDownloadButton(document);
+        if(!button) return;
+        if(button.dataset.rtAttached) return;
+
+        attachBehaviour(button, hash);
+
+        // Sur la page torrent : remplacer texte et icone par label par défaut
+        if(DEFAULT_LABEL){
+            button.innerHTML = DEFAULT_LABEL;
+            button.setAttribute("title", DEFAULT_LABEL);
+        }
+    }
+
+    patchTooltip();
 }
 
 /* ====================
