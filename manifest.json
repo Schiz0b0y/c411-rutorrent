@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "C411 → ruTorrent",
-  "version": "1.1",
+  "version": "1.2",
   "description": "Envoyer des torrents C411 vers ruTorrent avec labels",
   "homepage_url": "https://github.com/Schiz0b0y/c411-rutorrent",
   "author": "Schiz0b0y",
