@@ -3,6 +3,8 @@
   "name": "C411 → ruTorrent",
   "version": "1.1",
   "description": "Envoyer des torrents C411 vers ruTorrent avec labels",
+  "homepage_url": "https://github.com/Schiz0b0y/c411-rutorrent",
+  "author": "Schiz0b0y",
   "icons": {
   "48": "icon48.png",
   "96": "icon96.png"
@@ -20,6 +22,7 @@
 
   "browser_action": {
     "default_popup": "popup.html",
+    "default_icon": "icon96.png",
     "default_title": "Configuration ruTorrent"
   },
 
