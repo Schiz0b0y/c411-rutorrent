@@ -298,7 +298,7 @@ function scan(root = document){
         attachBehaviour(button, hash);
 
         if(DEFAULT_LABEL){
-            button.innerHTML = DEFAULT_LABEL;
+            button.textContent = DEFAULT_LABEL;
             button.setAttribute("title", DEFAULT_LABEL);
         }
     }
