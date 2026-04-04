@@ -5,6 +5,12 @@
        CONFIG
 ==================== */
 
+const API_BASE = "https://c411.org/api/torrents";
+
+function buildTorrentURL(hash){
+    return `${API_BASE}/${hash}/download`;
+}
+
 let LABELS = [];
 let DEFAULT_LABEL = null;
 
@@ -97,7 +103,7 @@ async function processTorrent(hash, label, button){
     button.textContent = "";
     button.appendChild(createLoaderSVG());
 
-    const torrentURL = `https://c411.org/api/torrents/${hash}/download`;
+    const torrentURL = buildTorrentURL(hash);
 
     try {
         const res = await browser.runtime.sendMessage({
@@ -141,7 +147,6 @@ function createMenu(hash, button) {
     menu.style.zIndex = "999999";
     menu.style.display = "none";
 
-    // injecte le style global si pas déjà fait
     if (!document.getElementById('c411-menu-style')) {
         const style = document.createElement('style');
         style.id = 'c411-menu-style';
@@ -164,7 +169,6 @@ function createMenu(hash, button) {
         document.head.appendChild(style);
     }
 
-    // labels configurés
     if(LABELS.length === 0){
         const item = document.createElement("div");
         item.textContent = "⚠️ Configure tes labels";
@@ -184,17 +188,15 @@ function createMenu(hash, button) {
         });
     }
 
-    // séparateur
     const separator = document.createElement('div');
     separator.className = 'c411-menu-separator';
     menu.appendChild(separator);
 
-    // entrée pour télécharger le .torrent natif
     const downloadItem = document.createElement("div");
     downloadItem.textContent = "Télécharger .torrent";
     downloadItem.className = "c411-menu-item";
     downloadItem.onclick = () => {
-        const torrentURL = `https://c411.org/api/torrents/${hash}/download`;
+        const torrentURL = buildTorrentURL(hash);
         const a = document.createElement('a');
         a.href = torrentURL;
         a.download = '';
@@ -295,7 +297,6 @@ function scan(root = document){
 
         attachBehaviour(button, hash);
 
-        // Sur la page torrent : remplacer texte et icone par label par défaut
         if(DEFAULT_LABEL){
             button.innerHTML = DEFAULT_LABEL;
             button.setAttribute("title", DEFAULT_LABEL);

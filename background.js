@@ -10,12 +10,26 @@ browser.runtime.onMessage.addListener(async (msg) => {
         return { success: false, error: "Configuration manquante" };
     }
 
+    function buildRutorrentAddUrl(baseUrl){
+    if(!baseUrl) return null;
+
+    baseUrl = baseUrl.trim();
+
+    // enlève trailing slash
+    baseUrl = baseUrl.replace(/\/+$/, "");
+
+    // enlève si déjà présent (sécurité)
+    baseUrl = baseUrl.replace(/\/php\/addtorrent\.php$/, "");
+
+    return baseUrl + "/php/addtorrent.php";
+}
+
     /* ====================
         TEST CONNEXION
     ==================== */
     if(msg.type === "TEST_CONNECTION"){
         return await testConnection(
-            config.rutorrentUrl,
+            buildRutorrentAddUrl(config.rutorrentUrl),
             config.login,
             config.password
         );
@@ -35,7 +49,7 @@ browser.runtime.onMessage.addListener(async (msg) => {
             form.append("label", msg.label);
 
             const result = await uploadTorrent(
-                config.rutorrentUrl,
+                buildRutorrentAddUrl(config.rutorrentUrl),
                 form,
                 config.login,
                 config.password
